@@ -1,21 +1,46 @@
 const {
   createComment,
-  fetchCommentsByArticleId
+  fetchCommentsByArticleId,
+  updateCommentsByCommentId,
+  deleteCommentByCommentId
 } = require("../models/comments.model");
 
 exports.postComment = (req, res, next) => {
-  console.log("in comment controller");
   const { article_id } = req.params;
   const { body } = req;
   body.article_id = article_id;
-  createComment(body).then(postedComment => {
-    res.status(201).send({ postedComment });
-  });
+  createComment(body)
+    .then(postedComment => {
+      res.status(201).send({ postedComment });
+    })
+    .catch(err => next(err));
 };
 
 exports.getCommentsByArticleId = (req, res, next) => {
   const { article_id } = req.params;
-  fetchCommentsByArticleId(article_id).then(comments => {
-    res.status(200).send({ comments });
-  });
+  const { sort_by, order } = req.query;
+  fetchCommentsByArticleId(article_id, sort_by, order)
+    .then(comments => {
+      res.status(200).send({ comments });
+    })
+    .catch(err => next(err));
+};
+
+exports.patchCommentsByCommentsId = (req, res, next) => {
+  const { comment_id } = req.params;
+  const { inc_votes } = req.body;
+  updateCommentsByCommentId(comment_id, inc_votes)
+    .then(updatedComment => res.status(202).send({ updatedComment }))
+    .catch(err => next(err));
+};
+
+exports.removeCommentByCommentId = (req, res, next) => {
+  const { comment_id } = req.params;
+  deleteCommentByCommentId(comment_id)
+    .then(result => {
+      if (result === 1) {
+        res.status(204).send();
+      }
+    })
+    .catch(err => next(err));
 };

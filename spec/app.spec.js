@@ -17,46 +17,47 @@ describe("/api", () => {
       return request(app)
         .get("/api/topics")
         .expect(200)
-        .then(res => {
-          res.body.topics.forEach(topic => {
+        .then(({ body }) => {
+          body.topics.forEach(topic => {
             expect(topic).to.have.keys(["slug", "description"]);
           });
         });
     });
   });
   describe("/api/users", () => {
-    describe("/:username", () => {
+    describe("/api/users/:username", () => {
       it("GET: 200 - responds with a user object containing the username, avatar url, and name", () => {
         return request(app)
           .get("/api/users/rogersop")
           .expect(200)
-          .then(res => {
-            expect(res.body.user).to.eql([
-              {
-                username: "rogersop",
-                name: "paul",
-                avatar_url:
-                  "https://avatars2.githubusercontent.com/u/24394918?s=400&v=4"
-              }
-            ]);
+          .then(({ body }) => {
+            expect(body.user).to.eql({
+              username: "rogersop",
+              name: "paul",
+              avatar_url:
+                "https://avatars2.githubusercontent.com/u/24394918?s=400&v=4"
+            });
+          });
+      });
+      it("GET: 400 - responds with 404 code and NOT FOUND message if passed a username that does not exist", () => {
+        return request(app)
+          .get("/api/users/IDEFINITELYDONOTEXIST")
+          .expect(400)
+          .then(({ body }) => {
+            expect(body.msg).to.eql("NOT FOUND");
           });
       });
     });
   });
   describe("/api/articles", () => {
-    it.only("GET: 200 - responds with an array of all articles with a comment count", () => {
+    it("GET: 200 - responds with an array of all articles with a comment count", () => {
       return request(app)
         .get("/api/articles")
         .expect(200)
-        .then(result => console.log(result.body.all_articles));
-    });
-    describe("/:article_id", () => {
-      it("GET: 200 - responds with an article object with keys for author, title, article_id, body, topic, created_at, votes and a correct comment count", () => {
-        return request(app)
-          .get("/api/articles/5")
-          .expect(200)
-          .then(res => {
-            expect(res.body.article).to.have.keys(
+        .then(({ body }) => {
+          expect(body.all_articles.length).to.eql(12);
+          body.all_articles.forEach(article => {
+            expect(article).to.have.keys(
               "article_id",
               "title",
               "body",
@@ -64,49 +65,266 @@ describe("/api", () => {
               "topic",
               "author",
               "created_at",
-              "comments"
+              "comment_count"
             );
-            expect(res.body.article.comments).to.eql(2);
+          });
+        });
+    });
+    describe("/api/articles/?sort_by", () => {
+      it("GET: 200 - sorts results by created_at and in descending order by default", () => {
+        return request(app)
+          .get("/api/articles")
+          .expect(200)
+          .then(({ body }) => {
+            expect(body.all_articles).to.be.sortedBy("created_at", {
+              descending: true
+            });
           });
       });
-      it("PATCH: 202 - takes a new votes object of the form {inc_votes: newVote}, updates specified article with the votes specified and responds with the updated article", () => {
+      it("GET: 200 - accepts a sort_by querie and sorts by that querie in descending order by default ", () => {
         return request(app)
-          .patch("/api/articles/3")
-          .send({ inc_votes: -100 })
-          .expect(202)
-          .then(result => {
-            expect(result.body.article.votes).to.eql(-100);
-            expect(result.body.article).to.have.keys(
+          .get("/api/articles?sort_by=votes")
+          .expect(200)
+          .then(({ body }) => {
+            expect(body.all_articles).to.be.sortedBy("votes", {
+              descending: true
+            });
+          });
+      });
+      it("GET: 200 - accepts a sort_by querie and an order querie and sorts by that querie in specified order", () => {
+        return request(app)
+          .get("/api/articles?sort_by=votes&order=asc")
+          .expect(200)
+          .then(({ body }) => {
+            expect(body.all_articles).to.be.sortedBy("votes");
+          });
+      });
+      it("GET: 200 - accepts a different sort_by querie and an order querie and sorts by that querie in specified order ", () => {
+        return request(app)
+          .get("/api/articles?sort_by=article_id&order=asc")
+          .expect(200)
+          .then(({ body }) => {
+            expect(body.all_articles).to.be.sortedBy("article_id");
+          });
+      });
+      it("GET: 200 - accepts an author querie and filters the results by author", () => {
+        return request(app)
+          .get("/api/articles?author=butter_bridge")
+          .expect(200)
+          .then(({ body }) => {
+            expect(body.all_articles).to.be.sortedBy("created_at", {
+              descending: true
+            });
+            body.all_articles.forEach(article => {
+              expect(article.author).to.eql("butter_bridge");
+            });
+          });
+      });
+      it("GET: 200 - accepts an topic querie and filters the results by topic", () => {
+        return request(app)
+          .get("/api/articles?topic=mitch")
+          .expect(200)
+          .then(({ body }) => {
+            expect(body.all_articles).to.be.sortedBy("created_at", {
+              descending: true
+            });
+            body.all_articles.forEach(article => {
+              expect(article.topic).to.eql("mitch");
+            });
+          });
+      });
+      it("GET: 200 - accepts a sort_by, order, and a topic querie and filters the sorted results by topic", () => {
+        return request(app)
+          .get("/api/articles?sort_by=votes&topic=mitch&order=asc")
+          .expect(200)
+          .then(({ body }) => {
+            expect(body.all_articles).to.be.sortedBy("votes");
+            body.all_articles.forEach(article => {
+              expect(article.topic).to.eql("mitch");
+            });
+          });
+      });
+    });
+  });
+  describe("/api/articles?queries ERRORS", () => {
+    it("GET: 422 - responds with 422 status and CANNOT PROCESS message if passed a sort-by querie where the sort criteria does not exist", () => {
+      return request(app)
+        .get("/api/articles?sort_by=BANANAS")
+        .expect(422)
+        .then(({ body }) => {
+          expect(body.msg).to.eql("CANNOT PROCESS");
+        });
+    });
+    it("GET: 422 - responds with 422 status and CANNOT PROCESS message if passed an order querie where the sort criteria does not exist", () => {
+      return request(app)
+        .get("/api/articles?order=BANANAS")
+        .expect(422)
+        .then(({ body }) => {
+          expect(body.msg).to.eql("ORDERING IS EITHER 'ASC' OR 'DESC");
+        });
+    });
+    it("GET: 200 - ignores querie if passed a querie which has incorrect structure", () => {
+      return request(app)
+        .get("/api/articles?blahblahdjhadjh")
+        .expect(200)
+        .then(({ body }) => {
+          expect(body.all_articles.length).to.eql(12);
+          body.all_articles.forEach(article => {
+            expect(article).to.have.keys(
               "article_id",
               "title",
               "body",
               "votes",
               "topic",
               "author",
-              "created_at"
+              "created_at",
+              "comment_count"
+            );
+          });
+        });
+    });
+  });
+  describe("/api/articles/:article_id", () => {
+    it("GET: 200 - responds with an article object with keys for author, title, article_id, body, topic, created_at, votes and a correct comment count", () => {
+      return request(app)
+        .get("/api/articles/5")
+        .expect(200)
+        .then(({ body }) => {
+          expect(body.article).to.have.keys(
+            "article_id",
+            "title",
+            "body",
+            "votes",
+            "topic",
+            "author",
+            "created_at",
+            "comment_count"
+          );
+          expect(body.article.comment_count).to.eql("2");
+        });
+    });
+    it("GET: 400 - responds with 400 code and NOT FOUND if passed a valid article_id that does not exist", () => {
+      return request(app)
+        .get("/api/articles/999")
+        .expect(400)
+        .then(({ body }) => {
+          expect(body.msg).to.eql("NOT FOUND");
+        });
+    });
+    it("GET: 404 - responds with 404 code and BAD REQUEST if passed an invalid article_id", () => {
+      return request(app)
+        .get("/api/articles/imnotanumber")
+        .expect(404)
+        .then(({ body }) => {
+          expect(body.msg).to.eql("BAD REQUEST");
+        });
+    });
+    it("PATCH: 202 - takes a new votes object of the form {inc_votes: newVote}, updates specified article with the votes specified and responds with the updated article", () => {
+      return request(app)
+        .patch("/api/articles/3")
+        .send({ inc_votes: -100 })
+        .expect(202)
+        .then(({ body }) => {
+          expect(body.article.votes).to.eql(-100);
+          expect(body.article).to.have.keys(
+            "article_id",
+            "title",
+            "body",
+            "votes",
+            "topic",
+            "author",
+            "created_at"
+          );
+        });
+    });
+    it("PATCH: 202 - increments up as well as down", () => {
+      return request(app)
+        .patch("/api/articles/3")
+        .send({ inc_votes: 150 })
+        .expect(202)
+        .then(({ body }) => {
+          expect(body.article.votes).to.eql(150);
+        });
+    });
+    it("PATCH: 400 - responds with 400 and NOT FOUND if user tries to patch to valid but non existant article_id", () => {
+      return request(app)
+        .patch("/api/articles/999")
+        .send({ inc_votes: 150 })
+        .expect(400)
+        .then(({ body }) => {
+          expect(body.msg).to.eql("NOT FOUND");
+        });
+    });
+    it("PATCH: 404 - responds with 404 and BAD REQUEST if user tries to patch to an invalid article_id", () => {
+      return request(app)
+        .patch("/api/articles/imalsonotanumber")
+        .send({ inc_votes: 150 })
+        .expect(404)
+        .then(({ body }) => {
+          expect(body.msg).to.eql("BAD REQUEST");
+        });
+    });
+    it("PATCH: 422 - responds with 422 and INFORMATION IN WRONG FORMAT if user tries to patch to a valid article_id with invalid data", () => {
+      return request(app)
+        .patch("/api/articles/2")
+        .send({ blah: "NOT WHAT WE WANT" })
+        .expect(422)
+        .then(({ body }) => {
+          expect(body.msg).to.eql("INFORMATION IN WRONG FORMAT");
+        });
+    });
+    describe("/api/articles/:article_id/comments", () => {
+      it("POST: 201 - accepts an object with username and body keys and responds with the posted comment", () => {
+        return request(app)
+          .post("/api/articles/3/comments")
+          .send({
+            author: "rogersop",
+            body: "absolutely, rootin, tootin, loved it"
+          })
+          .expect(201)
+          .then(({ body }) => {
+            expect(body.postedComment).to.have.keys(
+              "comment_id",
+              "author",
+              "article_id",
+              "votes",
+              "created_at",
+              "body"
             );
           });
       });
-      it("PATCH: 202 - increments up as well as down", () => {
+      it("POST: 404 - responds with 404 code and NOT FOUND message if user tries to post a comment to an valid but non-existant article", () => {
         return request(app)
-          .patch("/api/articles/3")
-          .send({ inc_votes: 150 })
-          .expect(202)
-          .then(result => {
-            expect(result.body.article.votes).to.eql(150);
+          .post("/api/articles/999999/comments")
+          .send({
+            author: "rogersop",
+            body: "absolutely, rootin, tootin, loved it"
+          })
+          .expect(404)
+          .then(({ body }) => {
+            expect(body.msg).to.eql("RESOURCE NOT FOUND");
           });
       });
-      describe("/comments", () => {
-        it("POST: 201 - accepts an object with username and body keys and responds with the posted comment", () => {
-          return request(app)
-            .post("/api/articles/3/comments")
-            .send({
-              author: "rogersop",
-              body: "absolutely, rootin, tootin, loved it"
-            })
-            .expect(201)
-            .then(result => {
-              expect(result.body.postedComment).to.have.keys(
+      it("POST: 422 - responds with 422 code and CANNOT PROCESS when passed a valid article id but invalid data", () => {
+        return request(app)
+          .post("/api/articles/3/comments")
+          .send({
+            wrong: "so wrong"
+          })
+          .expect(422)
+          .then(({ body }) => {
+            expect(body.msg).to.eql("CANNOT PROCESS");
+          });
+      });
+      it("GET: 200 - responds with an array of all of the comments for the article ID specified", () => {
+        return request(app)
+          .get("/api/articles/5/comments")
+          .expect(200)
+          .then(({ body }) => {
+            expect(body.comments.length).to.eql(2);
+            body.comments.forEach(comment => {
+              expect(comment.article_id).to.eql(5);
+              expect(comment).to.have.keys(
                 "comment_id",
                 "author",
                 "article_id",
@@ -115,26 +333,159 @@ describe("/api", () => {
                 "body"
               );
             });
-        });
-        it("GET: 200 - responds with an array of all of the comments for the article ID specified", () => {
+          });
+      });
+      it("GET: 400 - responds with 400 status code and NOT FOUND message when comments requested for article_id that is valid but does not exist", () => {
+        return request(app)
+          .get("/api/articles/999999/comments")
+          .expect(400)
+          .then(({ body }) => {
+            expect(body.msg).to.eql("NOT FOUND");
+          });
+      });
+      it("GET: 404 - responds with 404 status code and Bad Request message when comments requested for article_id that is not valid", () => {
+        return request(app)
+          .get("/api/articles/notanumber46723863/comments")
+          .expect(404)
+          .then(({ body }) => {
+            expect(body.msg).to.eql("BAD REQUEST");
+          });
+      });
+      describe("/api/articles/:article_id/comments?queries", () => {
+        it("GET: 200 - sorts results by created by and desc by default", () => {
           return request(app)
-            .get("/api/articles/5/comments")
+            .get("/api/articles/1/comments")
             .expect(200)
-            .then(result => {
-              expect(result.body.comments.length).to.eql(2);
-              result.body.comments.forEach(comment => {
-                expect(comment.article_id).to.eql(5);
-                expect(comment).to.have.keys(
-                  "comment_id",
-                  "author",
-                  "article_id",
-                  "votes",
-                  "created_at",
-                  "body"
-                );
+            .then(({ body }) => {
+              expect(body.comments).to.be.sortedBy("created_at", {
+                descending: true
               });
             });
         });
+        it("GET: 200 - accepts a sort_by querie and sorts by that querie in descending order ", () => {
+          return request(app)
+            .get("/api/articles/1/comments?sort_by=votes")
+            .expect(200)
+            .then(({ body }) => {
+              expect(body.comments).to.be.sortedBy("votes", {
+                descending: true
+              });
+            });
+        });
+        it("GET: 200 - accepts a sort_by querie and an order querie and sorts by that querie in specified order ", () => {
+          return request(app)
+            .get("/api/articles/1/comments?sort_by=votes&order=asc")
+            .expect(200)
+            .then(({ body }) => {
+              expect(body.comments).to.be.sortedBy("votes");
+            });
+        });
+        it("GET: 200 - accepts a different sort_by querie and an order querie and sorts by that querie in specified order ", () => {
+          return request(app)
+            .get("/api/articles/1/comments?sort_by=comment_id&order=asc")
+            .expect(200)
+            .then(({ body }) => {
+              expect(body.comments).to.be.sortedBy("comment_id");
+            });
+        });
+        describe("/api/articles/:article_id/comments?queries ERRORS", () => {
+          it("GET: 422 - responds with 422 status and CANNOT PROCESS message if passed a sort-by querie where the sort criteria does not exist", () => {
+            return request(app)
+              .get("/api/articles/1/comments?sort_by=BANANAS")
+              .expect(422)
+              .then(({ body }) => {
+                expect(body.msg).to.eql("CANNOT PROCESS");
+              });
+          });
+          it("GET: 422 - responds with 422 status and CANNOT PROCESS message if passed an order querie where the sort criteria does not exist", () => {
+            return request(app)
+              .get("/api/articles/1/comments?order=BANANAS")
+              .expect(422)
+              .then(({ body }) => {
+                expect(body.msg).to.eql("ORDERING IS EITHER 'ASC' OR 'DESC");
+              });
+          });
+          it("GET: 200 - ignores querie if passed a querie which has incorrect structure", () => {
+            return request(app)
+              .get("/api/articles/5/comments?blahblahdjhadjh")
+              .expect(200)
+              .then(({ body }) => {
+                expect(body.comments.length).to.eql(2);
+                body.comments.forEach(comment => {
+                  expect(comment.article_id).to.eql(5);
+                  expect(comment).to.have.keys(
+                    "comment_id",
+                    "author",
+                    "article_id",
+                    "votes",
+                    "created_at",
+                    "body"
+                  );
+                });
+              });
+          });
+        });
+      });
+    });
+  });
+  describe("/api/comments", () => {
+    describe("/api/comments/:comment_id", () => {
+      it("PATCH: 202 - accepts an object with an increment votes object, updates the votes count on the comment with specifiec comment_id on the database. Responds with updated comments ", () => {
+        return request(app)
+          .patch("/api/comments/2")
+          .send({ inc_votes: 100 })
+          .expect(202)
+          .then(({ body }) => {
+            expect(body.updatedComment.votes).to.eql(114);
+          });
+      });
+      it("PATCH: 400 - responds with 400 and NOT FOUND if user tries to patch to valid but non existant comment_id", () => {
+        return request(app)
+          .patch("/api/comments/99999")
+          .send({ inc_votes: 150 })
+          .expect(400)
+          .then(({ body }) => {
+            expect(body.msg).to.eql("NOT FOUND");
+          });
+      });
+      it("PATCH: 404 - responds with 404 and BAD REQUEST if user tries to patch to an invalid comment_id", () => {
+        return request(app)
+          .patch("/api/comments/imalsonotanumber")
+          .send({ inc_votes: 150 })
+          .expect(404)
+          .then(({ body }) => {
+            expect(body.msg).to.eql("BAD REQUEST");
+          });
+      });
+      it("PATCH: 422 - responds with 422 and INFORMATION IN WRONG FORMAT if user tries to patch to a valid comment_id with invalid data", () => {
+        return request(app)
+          .patch("/api/comments/2")
+          .send({ blah: "NOT WHAT WE WANT" })
+          .expect(422)
+          .then(({ body }) => {
+            expect(body.msg).to.eql("INFORMATION IN WRONG FORMAT");
+          });
+      });
+      it("DELETE: 204 - deletes the specified comment from the database", () => {
+        return request(app)
+          .delete("/api/comments/2")
+          .expect(204);
+      });
+      it("DELETE: 400 - responds with 400 code and NOT FOUND message if comment_id is valid but non-existent ", () => {
+        return request(app)
+          .delete("/api/comments/999999")
+          .expect(400)
+          .then(({ body }) => {
+            expect(body.msg).to.eql("NOT FOUND");
+          });
+      });
+      it("DELETE: 404 - responds with 404 code and BAD REQUEST message if comment_id is valid but non-existent ", () => {
+        return request(app)
+          .delete("/api/comments/imnotintheappropriateformat")
+          .expect(404)
+          .then(({ body }) => {
+            expect(body.msg).to.eql("BAD REQUEST");
+          });
       });
     });
   });
