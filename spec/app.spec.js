@@ -12,6 +12,90 @@ describe("/api", () => {
     return connection.seed.run();
   });
   after(() => connection.destroy());
+  describe("Invalid Methods /api/topics", () => {
+    it("status:405", () => {
+      const invalidMethods = ["put", "patch", "post", "delete"];
+      const methodPromises = invalidMethods.map(method => {
+        return request(app)
+          [method]("/api/topics")
+          .expect(405)
+          .then(({ body: { msg } }) => {
+            expect(msg).to.equal("method not allowed");
+          });
+      });
+      return Promise.all(methodPromises);
+    });
+  });
+  describe("Invalid Methods /api/users:username", () => {
+    it("status:405", () => {
+      const invalidMethods = ["put", "patch", "post", "delete"];
+      const methodPromises = invalidMethods.map(method => {
+        return request(app)
+          [method]("/api/users/:username")
+          .expect(405)
+          .then(({ body: { msg } }) => {
+            expect(msg).to.equal("method not allowed");
+          });
+      });
+      return Promise.all(methodPromises);
+    });
+  });
+  describe("Invalid Methods /api/articles/:article_id", () => {
+    it("status:405", () => {
+      const invalidMethods = ["put", "post", "delete"];
+      const methodPromises = invalidMethods.map(method => {
+        return request(app)
+          [method]("/api/articles/:article_id/")
+          .expect(405)
+          .then(({ body: { msg } }) => {
+            expect(msg).to.equal("method not allowed");
+          });
+      });
+      return Promise.all(methodPromises);
+    });
+  });
+  describe("Invalid Methods /api/articles/article_id/comments", () => {
+    it("status:405", () => {
+      const invalidMethods = ["put", "patch", "delete"];
+      const methodPromises = invalidMethods.map(method => {
+        return request(app)
+          [method]("/api/articles/article_id/comments")
+          .expect(405)
+          .then(({ body: { msg } }) => {
+            expect(msg).to.equal("method not allowed");
+          });
+      });
+      return Promise.all(methodPromises);
+    });
+  });
+  describe("Invalid Methods /api/articles/", () => {
+    it("status:405", () => {
+      const invalidMethods = ["put", "patch", "post", "delete"];
+      const methodPromises = invalidMethods.map(method => {
+        return request(app)
+          [method]("/api/articles")
+          .expect(405)
+          .then(({ body: { msg } }) => {
+            expect(msg).to.equal("method not allowed");
+          });
+      });
+      return Promise.all(methodPromises);
+    });
+  });
+  describe("Invalid Methods /api/comments/comment_id", () => {
+    it("status:405", () => {
+      const invalidMethods = ["put", "post"];
+      const methodPromises = invalidMethods.map(method => {
+        return request(app)
+          [method]("/api/comments/:comment_id")
+          .expect(405)
+          .then(({ body: { msg } }) => {
+            expect(msg).to.equal("method not allowed");
+          });
+      });
+      return Promise.all(methodPromises);
+    });
+  });
   describe("/api/topics", () => {
     it("GET: 200 - responds with a topic object containing a slug and description for each topic", () => {
       return request(app)
@@ -39,10 +123,10 @@ describe("/api", () => {
             });
           });
       });
-      it("GET: 400 - responds with 404 code and NOT FOUND message if passed a username that does not exist", () => {
+      it("GET: 404 - responds with 404 code and NOT FOUND message if passed a username that does not exist", () => {
         return request(app)
           .get("/api/users/IDEFINITELYDONOTEXIST")
-          .expect(400)
+          .expect(404)
           .then(({ body }) => {
             expect(body.msg).to.eql("NOT FOUND");
           });
@@ -118,6 +202,22 @@ describe("/api", () => {
             body.all_articles.forEach(article => {
               expect(article.author).to.eql("butter_bridge");
             });
+          });
+      });
+      it("GET: 200 - returns 200 code and NO ARTICLES MATCHING REQUEST FOUND message when articles requester for an author who does exist but has not written an article", () => {
+        return request(app)
+          .get("/api/articles?author=lurker")
+          .expect(200)
+          .then(({ body }) => {
+            expect(body.msg).to.eql("NO ARTICLES MATCHING REQUEST FOUND");
+          });
+      });
+      it("GET: 200 - returns 200 code and NO ARTICLES MATCHING REQUEST FOUND message when articles are requested by a topic which exists but has no articles yet", () => {
+        return request(app)
+          .get("/api/articles?topic=paper")
+          .expect(200)
+          .then(({ body }) => {
+            expect(body.msg).to.eql("NO ARTICLES MATCHING REQUEST FOUND");
           });
       });
       it("GET: 200 - accepts an topic querie and filters the results by topic", () => {
@@ -203,18 +303,18 @@ describe("/api", () => {
           expect(body.article.comment_count).to.eql("2");
         });
     });
-    it("GET: 400 - responds with 400 code and NOT FOUND if passed a valid article_id that does not exist", () => {
+    it("GET: 404 - responds with 404 code and NOT FOUND if passed a valid article_id that does not exist", () => {
       return request(app)
         .get("/api/articles/999")
-        .expect(400)
+        .expect(404)
         .then(({ body }) => {
           expect(body.msg).to.eql("NOT FOUND");
         });
     });
-    it("GET: 404 - responds with 404 code and BAD REQUEST if passed an invalid article_id", () => {
+    it("GET: 400 - responds with 400 code and BAD REQUEST if passed an invalid article_id", () => {
       return request(app)
         .get("/api/articles/imnotanumber")
-        .expect(404)
+        .expect(400)
         .then(({ body }) => {
           expect(body.msg).to.eql("BAD REQUEST");
         });
@@ -246,20 +346,20 @@ describe("/api", () => {
           expect(body.article.votes).to.eql(150);
         });
     });
-    it("PATCH: 400 - responds with 400 and NOT FOUND if user tries to patch to valid but non existant article_id", () => {
+    it("PATCH: 404 - responds with 404 and NOT FOUND if user tries to patch to valid but non existant article_id", () => {
       return request(app)
         .patch("/api/articles/999")
         .send({ inc_votes: 150 })
-        .expect(400)
+        .expect(404)
         .then(({ body }) => {
           expect(body.msg).to.eql("NOT FOUND");
         });
     });
-    it("PATCH: 404 - responds with 404 and BAD REQUEST if user tries to patch to an invalid article_id", () => {
+    it("PATCH: 400 - responds with 400 and BAD REQUEST if user tries to patch to an invalid article_id", () => {
       return request(app)
         .patch("/api/articles/imalsonotanumber")
         .send({ inc_votes: 150 })
-        .expect(404)
+        .expect(400)
         .then(({ body }) => {
           expect(body.msg).to.eql("BAD REQUEST");
         });
@@ -335,18 +435,18 @@ describe("/api", () => {
             });
           });
       });
-      it("GET: 400 - responds with 400 status code and NOT FOUND message when comments requested for article_id that is valid but does not exist", () => {
+      it("GET: 404 - responds with 404 status code and NOT FOUND message when comments requested for article_id that is valid but does not exist", () => {
         return request(app)
           .get("/api/articles/999999/comments")
-          .expect(400)
+          .expect(404)
           .then(({ body }) => {
             expect(body.msg).to.eql("NOT FOUND");
           });
       });
-      it("GET: 404 - responds with 404 status code and Bad Request message when comments requested for article_id that is not valid", () => {
+      it("GET: 400 - responds with 400 status code and Bad Request message when comments requested for article_id that is not valid", () => {
         return request(app)
           .get("/api/articles/notanumber46723863/comments")
-          .expect(404)
+          .expect(400)
           .then(({ body }) => {
             expect(body.msg).to.eql("BAD REQUEST");
           });
@@ -439,20 +539,20 @@ describe("/api", () => {
             expect(body.updatedComment.votes).to.eql(114);
           });
       });
-      it("PATCH: 400 - responds with 400 and NOT FOUND if user tries to patch to valid but non existant comment_id", () => {
+      it("PATCH: 404 - responds with 404 and NOT FOUND if user tries to patch to valid but non existant comment_id", () => {
         return request(app)
           .patch("/api/comments/99999")
           .send({ inc_votes: 150 })
-          .expect(400)
+          .expect(404)
           .then(({ body }) => {
             expect(body.msg).to.eql("NOT FOUND");
           });
       });
-      it("PATCH: 404 - responds with 404 and BAD REQUEST if user tries to patch to an invalid comment_id", () => {
+      it("PATCH: 400 - responds with 400 and BAD REQUEST if user tries to patch to an invalid comment_id", () => {
         return request(app)
           .patch("/api/comments/imalsonotanumber")
           .send({ inc_votes: 150 })
-          .expect(404)
+          .expect(400)
           .then(({ body }) => {
             expect(body.msg).to.eql("BAD REQUEST");
           });
@@ -471,18 +571,18 @@ describe("/api", () => {
           .delete("/api/comments/2")
           .expect(204);
       });
-      it("DELETE: 400 - responds with 400 code and NOT FOUND message if comment_id is valid but non-existent ", () => {
+      it("DELETE: 404 - responds with 404 code and NOT FOUND message if comment_id is valid but non-existent ", () => {
         return request(app)
           .delete("/api/comments/999999")
-          .expect(400)
+          .expect(404)
           .then(({ body }) => {
             expect(body.msg).to.eql("NOT FOUND");
           });
       });
-      it("DELETE: 404 - responds with 404 code and BAD REQUEST message if comment_id is valid but non-existent ", () => {
+      it("DELETE: 400 - responds with 400 code and BAD REQUEST message if comment_id is not valid ", () => {
         return request(app)
           .delete("/api/comments/imnotintheappropriateformat")
-          .expect(404)
+          .expect(400)
           .then(({ body }) => {
             expect(body.msg).to.eql("BAD REQUEST");
           });

@@ -9,17 +9,23 @@ const {
   postComment,
   getCommentsByArticleId
 } = require("../controllers/comments.controller");
+const { send405Error } = require("../errorHandling/error.functions");
 
-articlesRouter.route("/").get(getArticlesAndComments);
+articlesRouter
+  .route("/")
+  .get(getArticlesAndComments)
+  .all(send405Error);
 
 articlesRouter
   .route("/:article_id")
   .get(getArticlesById)
-  .patch(patchArticle);
+  .patch(patchArticle)
+  .all(send405Error);
 
 articlesRouter
   .route("/:article_id/comments")
   .post(postComment)
-  .get(getCommentsByArticleId);
+  .get(getCommentsByArticleId)
+  .all(send405Error);
 
 module.exports = articlesRouter;

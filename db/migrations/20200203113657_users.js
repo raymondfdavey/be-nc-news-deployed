@@ -1,7 +1,5 @@
 exports.up = function(knex) {
   return knex.schema.createTable("users", usersTable => {
-    console.log("START");
-
     usersTable
       .string("username")
       .primary()
@@ -12,7 +10,5 @@ exports.up = function(knex) {
 };
 
 exports.down = function(knex) {
-  console.log("START");
-
   return knex.schema.dropTable("users");
 };

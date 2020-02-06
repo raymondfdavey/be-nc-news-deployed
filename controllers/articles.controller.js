@@ -24,7 +24,11 @@ exports.getArticlesAndComments = (req, res, next) => {
   const { sort_by, order, author, topic } = req.query;
   fetchAllArticlesAndComments(sort_by, order, author, topic)
     .then(all_articles => {
-      res.status(200).send({ all_articles });
+      if (all_articles.length === 0) {
+        res.status(200).send({ msg: "NO ARTICLES MATCHING REQUEST FOUND" });
+      } else {
+        res.status(200).send({ all_articles });
+      }
     })
     .catch(err => next(err));
 };

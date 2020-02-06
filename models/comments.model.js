@@ -18,7 +18,7 @@ exports.fetchCommentsByArticleId = (
     .orderBy(sort_by, order)
     .then(result => {
       if (result.length === 0) {
-        return Promise.reject({ status: 400, msg: "NOT FOUND" });
+        return Promise.reject({ status: 404, msg: "NOT FOUND" });
       }
       return result;
     });
@@ -42,7 +42,7 @@ exports.updateCommentsByCommentId = (comment_id, inc_votes) => {
     .returning("*")
     .then(([updatedComment]) => {
       if (updatedComment === undefined) {
-        return Promise.reject({ status: 400, msg: "NOT FOUND" });
+        return Promise.reject({ status: 404, msg: "NOT FOUND" });
       }
       return updatedComment;
     });
@@ -54,7 +54,7 @@ exports.deleteCommentByCommentId = comment_id => {
     .del()
     .then(result => {
       if (result === 0) {
-        return Promise.reject({ status: 400, msg: "NOT FOUND" });
+        return Promise.reject({ status: 404, msg: "NOT FOUND" });
       } else {
         return result;
       }
