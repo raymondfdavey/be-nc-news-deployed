@@ -19,7 +19,7 @@ app.use((err, req, res, next) => {
       res.status(404).send({ msg: "RESOURCE NOT FOUND" });
     }
     if (err.code === "42703") {
-      res.status(422).send({ msg: "CANNOT PROCESS" });
+      res.status(400).send({ msg: "CANNOT PROCESS" });
     }
   }
 });

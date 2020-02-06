@@ -139,8 +139,8 @@ describe("/api", () => {
         .get("/api/articles")
         .expect(200)
         .then(({ body }) => {
-          expect(body.all_articles.length).to.eql(12);
-          body.all_articles.forEach(article => {
+          expect(body.articles.length).to.eql(12);
+          body.articles.forEach(article => {
             expect(article).to.have.keys(
               "article_id",
               "title",
@@ -160,7 +160,7 @@ describe("/api", () => {
           .get("/api/articles")
           .expect(200)
           .then(({ body }) => {
-            expect(body.all_articles).to.be.sortedBy("created_at", {
+            expect(body.articles).to.be.sortedBy("created_at", {
               descending: true
             });
           });
@@ -170,7 +170,7 @@ describe("/api", () => {
           .get("/api/articles?sort_by=votes")
           .expect(200)
           .then(({ body }) => {
-            expect(body.all_articles).to.be.sortedBy("votes", {
+            expect(body.articles).to.be.sortedBy("votes", {
               descending: true
             });
           });
@@ -180,7 +180,7 @@ describe("/api", () => {
           .get("/api/articles?sort_by=votes&order=asc")
           .expect(200)
           .then(({ body }) => {
-            expect(body.all_articles).to.be.sortedBy("votes");
+            expect(body.articles).to.be.sortedBy("votes");
           });
       });
       it("GET: 200 - accepts a different sort_by querie and an order querie and sorts by that querie in specified order ", () => {
@@ -188,7 +188,7 @@ describe("/api", () => {
           .get("/api/articles?sort_by=article_id&order=asc")
           .expect(200)
           .then(({ body }) => {
-            expect(body.all_articles).to.be.sortedBy("article_id");
+            expect(body.articles).to.be.sortedBy("article_id");
           });
       });
       it("GET: 200 - accepts an author querie and filters the results by author", () => {
@@ -196,10 +196,10 @@ describe("/api", () => {
           .get("/api/articles?author=butter_bridge")
           .expect(200)
           .then(({ body }) => {
-            expect(body.all_articles).to.be.sortedBy("created_at", {
+            expect(body.articles).to.be.sortedBy("created_at", {
               descending: true
             });
-            body.all_articles.forEach(article => {
+            body.articles.forEach(article => {
               expect(article.author).to.eql("butter_bridge");
             });
           });
@@ -225,10 +225,10 @@ describe("/api", () => {
           .get("/api/articles?topic=mitch")
           .expect(200)
           .then(({ body }) => {
-            expect(body.all_articles).to.be.sortedBy("created_at", {
+            expect(body.articles).to.be.sortedBy("created_at", {
               descending: true
             });
-            body.all_articles.forEach(article => {
+            body.articles.forEach(article => {
               expect(article.topic).to.eql("mitch");
             });
           });
@@ -238,8 +238,8 @@ describe("/api", () => {
           .get("/api/articles?sort_by=votes&topic=mitch&order=asc")
           .expect(200)
           .then(({ body }) => {
-            expect(body.all_articles).to.be.sortedBy("votes");
-            body.all_articles.forEach(article => {
+            expect(body.articles).to.be.sortedBy("votes");
+            body.articles.forEach(article => {
               expect(article.topic).to.eql("mitch");
             });
           });
@@ -268,8 +268,8 @@ describe("/api", () => {
         .get("/api/articles?blahblahdjhadjh")
         .expect(200)
         .then(({ body }) => {
-          expect(body.all_articles.length).to.eql(12);
-          body.all_articles.forEach(article => {
+          expect(body.articles.length).to.eql(12);
+          body.articles.forEach(article => {
             expect(article).to.have.keys(
               "article_id",
               "title",
@@ -368,6 +368,16 @@ describe("/api", () => {
       return request(app)
         .patch("/api/articles/2")
         .send({ blah: "NOT WHAT WE WANT" })
+        .expect(422)
+        .then(({ body }) => {
+          expect(body.msg).to.eql("INFORMATION IN WRONG FORMAT");
+        });
+    });
+    it("PATCH: 422 - responds with 422 and INFORMATION IN WRONG FORMAT if user tries to patch an object with no structure", () => {
+      const rubbish = "rubbish";
+      return request(app)
+        .patch("/api/articles/2")
+        .send({ rubbish })
         .expect(422)
         .then(({ body }) => {
           expect(body.msg).to.eql("INFORMATION IN WRONG FORMAT");

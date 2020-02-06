@@ -1,0 +1,115 @@
+{
+  "GET /api": {
+    "description": "serves up a json representation of all the available endpoints of the api"
+  },
+
+  "GET /api/topics": {
+    "description": "serves an array of all topics",
+    "queries": [],
+    "exampleResponse": {
+      "topics": [
+        {
+          "slug": "football",
+          "description": "Footie!"
+        }
+      ]
+    }
+  },
+
+  "GET /api/articles": {
+    "description": "serves an array of all articles",
+    "queries": ["author", "topic", "sort_by", "order"],
+    "exampleResponse": {
+      "articles": [
+        {
+          "article_id": 25,
+          "title": "Sweet potato & butternut squash soup with lemon & garlic toast",
+          "body": "Roast your vegetables in honey before blitzing into this velvety smooth, spiced soup - served with garlicky, zesty ciabatta slices for dipping",
+          "votes": 0,
+          "topic": "cooking",
+          "author": "weegembump",
+          "created_at": "2017-08-18T09:25:14.275Z",
+          "comment_count": "4"
+        }
+      ]
+    }
+  },
+
+  "GET /api/articles/:article_id": {
+    "description": "serves a specified article",
+    "queries": [],
+    "exampleResponse": {
+      "article": {
+        "article_id": 33,
+        "title": "Seafood substitutions are increasing",
+        "body": "'SEAFOOD fraud is...",
+        "votes": 0,
+        "topic": "cooking",
+        "author": "weegembump",
+        "created_at": "2018-05-30T15:59:13.341Z",
+        "comment_count": "7"
+      }
+    }
+  },
+
+  "PATCH /api/articles/:article_id": {
+    "description": "Increments the vote count on specified article. Can be positive or negative increment. Serves updated article. Accepts patch in format below",
+    "example patch object": { "inc_votes": 100 },
+    "example response": {
+      "article": {
+        "article_id": 33,
+        "title": "Seafood substitutions are increasing",
+        "body": "'SEAFOOD fraud is ...",
+        "votes": 100,
+        "topic": "cooking",
+        "author": "weegembump",
+        "created_at": "2018-05-30T15:59:13.341Z"
+      }
+    }
+  },
+  "GET /api/articles/:article_id/comments": {
+    "description": "serves comments on specified article",
+    "exampleResponse": {
+      "comments": [
+        {
+          "comment_id": 301,
+          "author": "tickle122",
+          "article_id": 33,
+          "votes": 0,
+          "created_at": "2020-02-06T14:01:36.373Z",
+          "body": "just TESTING REALLY"
+        },
+        {
+          "comment_id": 115,
+          "author": "happyamy2016",
+          "article_id": 33,
+          "votes": 12,
+          "created_at": "2018-01-19T14:47:14.514Z",
+          "body": "..."
+        }
+      ]
+    }
+  },
+  "POST /api/articles/:article_id/comments": {
+    "description": "Adds new comment to database when posted in the format below. Serves posted comment",
+    "restrictions": "must be valid username and object keys as below",
+    "exampleComment": {
+      "author": "tickle122",
+      "body": "example of a comment"
+    },
+    "exampleResponse": {
+      "postedComment": {
+        "comment_id": 309,
+        "author": "tickle122",
+        "article_id": 33,
+        "votes": 0,
+        "created_at": "2020-02-06T15:41:06.727Z",
+        "body": "example of a comment"
+      }
+    }
+  },
+
+  "DELETE /api/comments/comment_id": {
+    "description": "deletes specified comment. responds with 204 status if successful"
+  }
+}

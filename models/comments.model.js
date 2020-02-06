@@ -7,7 +7,7 @@ exports.fetchCommentsByArticleId = (
 ) => {
   if (order !== "desc" && order !== "asc") {
     return Promise.reject({
-      status: 422,
+      status: 400,
       msg: "ORDERING IS EITHER 'ASC' OR 'DESC"
     });
   }
@@ -34,7 +34,7 @@ exports.createComment = body => {
 
 exports.updateCommentsByCommentId = (comment_id, inc_votes) => {
   if (typeof inc_votes !== "number") {
-    return Promise.reject({ status: 422, msg: "INFORMATION IN WRONG FORMAT" });
+    return Promise.reject({ status: 400, msg: "INFORMATION IN WRONG FORMAT" });
   }
   return connection("comments")
     .where("comment_id", "=", comment_id)
@@ -57,6 +57,16 @@ exports.deleteCommentByCommentId = comment_id => {
         return Promise.reject({ status: 404, msg: "NOT FOUND" });
       } else {
         return result;
+      }
+    });
+};
+
+exports.fetchCommentByCommentId = comment_id => {
+  return connection("comments")
+    .where("comment_id", "=", comment_id)
+    .then(result => {
+      if (result.length === 0) {
+        return Promise.reject({ status: 404, msg: "COMMENT NOT FOUND" });
       }
     });
 };
