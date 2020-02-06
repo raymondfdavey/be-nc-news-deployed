@@ -10,6 +10,8 @@ exports.postComment = (req, res, next) => {
   const { article_id } = req.params;
   const { body } = req;
   body.article_id = article_id;
+  body.author = body.username;
+  delete body.username;
   createComment(body)
     .then(comment => {
       res.status(201).send({ comment });

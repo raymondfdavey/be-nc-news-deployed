@@ -204,12 +204,12 @@ describe("/api", () => {
             });
           });
       });
-      it("GET: 200 - returns 200 code and NO ARTICLES MATCHING REQUEST FOUND message when articles requester for an author who does exist but has not written an article", () => {
+      it("GET: 200 - returns 200 code and empty array when articles requests for an author who does exist but has not written an article", () => {
         return request(app)
           .get("/api/articles?author=lurker")
           .expect(200)
           .then(({ body }) => {
-            expect(body.msg).to.eql("NO ARTICLES MATCHING REQUEST FOUND");
+            expect(body.articles).to.eql([]);
           });
       });
       it("GET: 200 - returns 200 code and NO ARTICLES MATCHING REQUEST FOUND message when articles are requested by a topic which exists but has no articles yet", () => {
@@ -217,7 +217,7 @@ describe("/api", () => {
           .get("/api/articles?topic=paper")
           .expect(200)
           .then(({ body }) => {
-            expect(body.msg).to.eql("NO ARTICLES MATCHING REQUEST FOUND");
+            expect(body.articles).to.eql([]);
           });
       });
       it("GET: 200 - accepts an topic querie and filters the results by topic", () => {
@@ -247,7 +247,7 @@ describe("/api", () => {
     });
   });
   describe("/api/articles?queries ERRORS", () => {
-    it.only("GET: 400 - responds with 400 status and CANNOT PROCESS message if passed a sort-by querie where the sort criteria does not exist", () => {
+    it("GET: 400 - responds with 400 status and CANNOT PROCESS message if passed a sort-by querie where the sort criteria does not exist", () => {
       return request(app)
         .get("/api/articles?sort_by=IDON-TO-EXIST")
         .expect(400)
@@ -319,11 +319,11 @@ describe("/api", () => {
           expect(body.msg).to.eql("BAD REQUEST");
         });
     });
-    it("PATCH: 202 - takes a new votes object of the form {inc_votes: newVote}, updates specified article with the votes specified and responds with the updated article", () => {
+    it("PATCH: 200 - takes a new votes object of the form {inc_votes: newVote}, updates specified article with the votes specified and responds with the updated article", () => {
       return request(app)
         .patch("/api/articles/3")
         .send({ inc_votes: -100 })
-        .expect(202)
+        .expect(200)
         .then(({ body }) => {
           expect(body.article.votes).to.eql(-100);
           expect(body.article).to.have.keys(
@@ -341,7 +341,7 @@ describe("/api", () => {
       return request(app)
         .patch("/api/articles/3")
         .send({ inc_votes: 150 })
-        .expect(202)
+        .expect(200)
         .then(({ body }) => {
           expect(body.article.votes).to.eql(150);
         });
@@ -384,11 +384,19 @@ describe("/api", () => {
         });
     });
     describe("/api/articles/:article_id/comments", () => {
+      it("GET: 200 - return an empty array when a comment request is made for an article which exists but has no comments", () => {
+        return request(app)
+          .get("/api/articles/2/comments")
+          .expect(200)
+          .then(({ body }) => {
+            expect(body.comments).to.eql([]);
+          });
+      });
       it("POST: 201 - accepts an object with username and body keys and responds with the posted comment", () => {
         return request(app)
-          .post("/api/articles/3/comments")
+          .post("/api/articles/1/comments")
           .send({
-            author: "rogersop",
+            username: "rogersop",
             body: "absolutely, rootin, tootin, loved it"
           })
           .expect(201)
@@ -407,12 +415,24 @@ describe("/api", () => {
         return request(app)
           .post("/api/articles/999999/comments")
           .send({
-            author: "rogersop",
+            username: "rogersop",
             body: "absolutely, rootin, tootin, loved it"
           })
           .expect(404)
           .then(({ body }) => {
             expect(body.msg).to.eql("RESOURCE NOT FOUND");
+          });
+      });
+      it("POST: 404 - responds with 400 code and BAD request message if user tries to post a comment in the incorrect format", () => {
+        return request(app)
+          .post("/api/articles/2/comments")
+          .send({
+            author: "rogersop",
+            body: "absolutely, rootin, tootin, loved it"
+          })
+          .expect(400)
+          .then(({ body }) => {
+            expect(body.msg).to.eql("BAD REQUEST");
           });
       });
       it("POST: 400 - responds with 400 code and CANNOT PROCESS when passed a valid article id but invalid data", () => {
@@ -423,7 +443,7 @@ describe("/api", () => {
           })
           .expect(400)
           .then(({ body }) => {
-            expect(body.msg).to.eql("CANNOT PROCESS");
+            expect(body.msg).to.eql("BAD REQUEST");
           });
       });
       it("GET: 200 - responds with an array of all of the comments for the article ID specified", () => {

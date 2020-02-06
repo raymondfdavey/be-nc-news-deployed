@@ -1,3 +1,4 @@
+const { fetchArticles } = require("./articles.model");
 const connection = require("../db/connection");
 
 exports.fetchCommentsByArticleId = (
@@ -18,13 +19,22 @@ exports.fetchCommentsByArticleId = (
     .orderBy(sort_by, order)
     .then(result => {
       if (result.length === 0) {
-        return Promise.reject({ status: 404, msg: "NOT FOUND" });
+        return Promise.all([fetchArticles(article_id), result]).then(
+          ([articleCheck, result]) => {
+            if (articleCheck.length !== 0) {
+              return result;
+            }
+          }
+        );
       }
       return result;
     });
 };
 
 exports.createComment = body => {
+  if (!body.author || !body.body) {
+    return Promise.reject({ status: 400, msg: "BAD REQUEST" });
+  }
   return connection
     .insert(body)
     .into("comments")
