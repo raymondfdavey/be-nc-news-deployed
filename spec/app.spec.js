@@ -247,10 +247,10 @@ describe("/api", () => {
     });
   });
   describe("/api/articles?queries ERRORS", () => {
-    it("GET: 422 - responds with 422 status and CANNOT PROCESS message if passed a sort-by querie where the sort criteria does not exist", () => {
+    it("GET: 400 - responds with 400 status and CANNOT PROCESS message if passed a sort-by querie where the sort criteria does not exist", () => {
       return request(app)
         .get("/api/articles?sort_by=BANANAS")
-        .expect(422)
+        .expect(400)
         .then(({ body }) => {
           expect(body.msg).to.eql("CANNOT PROCESS");
         });
@@ -364,21 +364,21 @@ describe("/api", () => {
           expect(body.msg).to.eql("BAD REQUEST");
         });
     });
-    it("PATCH: 422 - responds with 422 and INFORMATION IN WRONG FORMAT if user tries to patch to a valid article_id with invalid data", () => {
+    it("PATCH: 400 - responds with 400 and INFORMATION IN WRONG FORMAT if user tries to patch to a valid article_id with invalid data", () => {
       return request(app)
         .patch("/api/articles/2")
         .send({ blah: "NOT WHAT WE WANT" })
-        .expect(422)
+        .expect(400)
         .then(({ body }) => {
           expect(body.msg).to.eql("INFORMATION IN WRONG FORMAT");
         });
     });
-    it("PATCH: 422 - responds with 422 and INFORMATION IN WRONG FORMAT if user tries to patch an object with no structure", () => {
+    it("PATCH: 400 - responds with 400 and INFORMATION IN WRONG FORMAT if user tries to patch an object with no structure", () => {
       const rubbish = "rubbish";
       return request(app)
         .patch("/api/articles/2")
         .send({ rubbish })
-        .expect(422)
+        .expect(400)
         .then(({ body }) => {
           expect(body.msg).to.eql("INFORMATION IN WRONG FORMAT");
         });
@@ -393,7 +393,7 @@ describe("/api", () => {
           })
           .expect(201)
           .then(({ body }) => {
-            expect(body.postedComment).to.have.keys(
+            expect(body.comment).to.have.keys(
               "comment_id",
               "author",
               "article_id",
@@ -415,13 +415,13 @@ describe("/api", () => {
             expect(body.msg).to.eql("RESOURCE NOT FOUND");
           });
       });
-      it("POST: 422 - responds with 422 code and CANNOT PROCESS when passed a valid article id but invalid data", () => {
+      it("POST: 400 - responds with 400 code and CANNOT PROCESS when passed a valid article id but invalid data", () => {
         return request(app)
           .post("/api/articles/3/comments")
           .send({
             wrong: "so wrong"
           })
-          .expect(422)
+          .expect(400)
           .then(({ body }) => {
             expect(body.msg).to.eql("CANNOT PROCESS");
           });
@@ -499,18 +499,18 @@ describe("/api", () => {
             });
         });
         describe("/api/articles/:article_id/comments?queries ERRORS", () => {
-          it("GET: 422 - responds with 422 status and CANNOT PROCESS message if passed a sort-by querie where the sort criteria does not exist", () => {
+          it("GET: 400 - responds with 400 status and CANNOT PROCESS message if passed a sort-by querie where the sort criteria does not exist", () => {
             return request(app)
               .get("/api/articles/1/comments?sort_by=BANANAS")
-              .expect(422)
+              .expect(400)
               .then(({ body }) => {
                 expect(body.msg).to.eql("CANNOT PROCESS");
               });
           });
-          it("GET: 422 - responds with 422 status and CANNOT PROCESS message if passed an order querie where the sort criteria does not exist", () => {
+          it("GET: 400 - responds with 400 status and CANNOT PROCESS message if passed an order querie where the sort criteria does not exist", () => {
             return request(app)
               .get("/api/articles/1/comments?order=BANANAS")
-              .expect(422)
+              .expect(400)
               .then(({ body }) => {
                 expect(body.msg).to.eql("ORDERING IS EITHER 'ASC' OR 'DESC");
               });
@@ -540,13 +540,13 @@ describe("/api", () => {
   });
   describe("/api/comments", () => {
     describe("/api/comments/:comment_id", () => {
-      it("PATCH: 202 - accepts an object with an increment votes object, updates the votes count on the comment with specifiec comment_id on the database. Responds with updated comments ", () => {
+      it("PATCH: 200 - accepts an object with an increment votes object, updates the votes count on the comment with specifiec comment_id on the database. Responds with updated comments ", () => {
         return request(app)
           .patch("/api/comments/2")
           .send({ inc_votes: 100 })
-          .expect(202)
+          .expect(200)
           .then(({ body }) => {
-            expect(body.updatedComment.votes).to.eql(114);
+            expect(body.comment.votes).to.eql(114);
           });
       });
       it("PATCH: 404 - responds with 404 and NOT FOUND if user tries to patch to valid but non existant comment_id", () => {
@@ -567,11 +567,11 @@ describe("/api", () => {
             expect(body.msg).to.eql("BAD REQUEST");
           });
       });
-      it("PATCH: 422 - responds with 422 and INFORMATION IN WRONG FORMAT if user tries to patch to a valid comment_id with invalid data", () => {
+      it("PATCH: 400 - responds with 400 and INFORMATION IN WRONG FORMAT if user tries to patch to a valid comment_id with invalid data", () => {
         return request(app)
           .patch("/api/comments/2")
           .send({ blah: "NOT WHAT WE WANT" })
-          .expect(422)
+          .expect(400)
           .then(({ body }) => {
             expect(body.msg).to.eql("INFORMATION IN WRONG FORMAT");
           });

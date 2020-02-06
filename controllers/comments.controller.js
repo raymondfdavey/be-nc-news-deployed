@@ -11,8 +11,8 @@ exports.postComment = (req, res, next) => {
   const { body } = req;
   body.article_id = article_id;
   createComment(body)
-    .then(postedComment => {
-      res.status(201).send({ postedComment });
+    .then(comment => {
+      res.status(201).send({ comment });
     })
     .catch(err => next(err));
 };
@@ -31,7 +31,7 @@ exports.patchCommentsByCommentsId = (req, res, next) => {
   const { comment_id } = req.params;
   const { inc_votes } = req.body;
   updateCommentsByCommentId(comment_id, inc_votes)
-    .then(updatedComment => res.status(202).send({ updatedComment }))
+    .then(comment => res.status(200).send({ comment }))
     .catch(err => next(err));
 };
 

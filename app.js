@@ -4,7 +4,7 @@ const apiRouter = require("./routes/api.route");
 const send405Error = require("./errorHandling/error.functions");
 app.use(express.json());
 
-app.use("/api", apiRouter);
+app.use("/api", apiRouter).all(send405Error);
 
 app.use((err, req, res, next) => {
   // console.log("in error block, error:", err);
