@@ -247,9 +247,9 @@ describe("/api", () => {
     });
   });
   describe("/api/articles?queries ERRORS", () => {
-    it("GET: 400 - responds with 400 status and CANNOT PROCESS message if passed a sort-by querie where the sort criteria does not exist", () => {
+    it.only("GET: 400 - responds with 400 status and CANNOT PROCESS message if passed a sort-by querie where the sort criteria does not exist", () => {
       return request(app)
-        .get("/api/articles?sort_by=BANANAS")
+        .get("/api/articles?sort_by=IDON-TO-EXIST")
         .expect(400)
         .then(({ body }) => {
           expect(body.msg).to.eql("CANNOT PROCESS");

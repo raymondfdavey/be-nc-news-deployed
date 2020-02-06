@@ -64,9 +64,11 @@ exports.deleteCommentByCommentId = comment_id => {
 exports.fetchCommentByCommentId = comment_id => {
   return connection("comments")
     .where("comment_id", "=", comment_id)
-    .then(result => {
+    .then(([result]) => {
       if (result.length === 0) {
         return Promise.reject({ status: 404, msg: "COMMENT NOT FOUND" });
+      } else {
+        return result;
       }
     });
 };
