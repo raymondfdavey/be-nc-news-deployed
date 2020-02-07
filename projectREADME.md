@@ -1,6 +1,6 @@
 # NC_NEWS
 
-An API serving articles and comments
+## An API serving articles and comments.
 
 ## Getting Started
 
@@ -12,6 +12,8 @@ for running - express, knex, pg(postgres)
 for dev/testing - chai, chai sorted, mocha, nodemon, sams-chai-sorted, supertest
 
 ### Installing
+
+### FUNCTIONALITY
 
 ### Running Tests
 
