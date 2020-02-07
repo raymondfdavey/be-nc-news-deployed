@@ -12,6 +12,20 @@ describe("/api", () => {
     return connection.seed.run();
   });
   after(() => connection.destroy());
+  describe("Invalid Methods /api/", () => {
+    it("status:405", () => {
+      const invalidMethods = ["put", "patch", "post", "delete"];
+      const methodPromises = invalidMethods.map(method => {
+        return request(app)
+          [method]("/api")
+          .expect(405)
+          .then(({ body: { msg } }) => {
+            expect(msg).to.equal("method not allowed");
+          });
+      });
+      return Promise.all(methodPromises);
+    });
+  });
   describe("Invalid Methods /api/topics", () => {
     it("status:405", () => {
       const invalidMethods = ["put", "patch", "post", "delete"];
