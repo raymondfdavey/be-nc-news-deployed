@@ -69,6 +69,7 @@
   },
   "GET /api/articles/:article_id/comments": {
     "description": "serves comments on specified article",
+    "queries": ["sort-by", "order"],
     "exampleResponse": {
       "comments": [
         {
