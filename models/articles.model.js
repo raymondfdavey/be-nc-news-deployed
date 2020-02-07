@@ -38,7 +38,8 @@ exports.fetchAllArticlesAndComments = (
   sort_by = "created_at",
   order = "desc",
   author,
-  topic
+  topic,
+  article_id
   // limit = 10,
   // p = 1
 ) => {

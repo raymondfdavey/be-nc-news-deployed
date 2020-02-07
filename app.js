@@ -6,6 +6,8 @@ app.use(express.json());
 
 app.use("/api", apiRouter).all(send405Error);
 
+app.use("/", apiRouter).all(send405Error);
+
 app.use((err, req, res, next) => {
   // console.log("in error block, error:", err);
   if (err.status !== undefined) {

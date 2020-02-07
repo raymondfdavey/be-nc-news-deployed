@@ -10,6 +10,7 @@ apiRouter
   .route("/")
   .get(getJSON)
   .all(send405Error);
+
 apiRouter.use("/topics", topicsRouter);
 
 apiRouter.use("/users", usersRouter);
