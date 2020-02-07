@@ -3,7 +3,6 @@ const { fetchUserByUsername } = require("../models/users.model");
 const { fetchTopics } = require("../models/topics.model");
 
 exports.fetchArticles = article_id => {
-  console.log("in the article controller");
   return connection
     .select("articles.*")
     .from("articles")
