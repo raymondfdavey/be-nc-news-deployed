@@ -39,6 +39,8 @@ exports.fetchAllArticlesAndComments = (
   order = "desc",
   author,
   topic
+  // limit = 10,
+  // p = 1
 ) => {
   if (order !== "desc" && order !== "asc") {
     return Promise.reject({
@@ -46,42 +48,46 @@ exports.fetchAllArticlesAndComments = (
       msg: "ORDERING IS EITHER 'ASC' OR 'DESC"
     });
   }
-  return connection
-    .select("articles.*")
-    .from("articles")
-    .count({ comment_count: "comment_id" })
-    .leftJoin("comments", "comments.article_id", "articles.article_id")
-    .groupBy("articles.article_id")
-    .orderBy(sort_by, order)
-    .modify(chainedArticles => {
-      if (author) {
-        chainedArticles.where("articles.author", "=", author);
-      }
-      if (topic) {
-        chainedArticles.where("articles.topic", "=", topic);
-      }
-    })
-    .then(result => {
-      if (result.length === 0) {
+  return (
+    connection
+      .select("articles.*")
+      .from("articles")
+      .count({ comment_count: "comment_id" })
+      .leftJoin("comments", "comments.article_id", "articles.article_id")
+      .groupBy("articles.article_id")
+      .orderBy(sort_by, order)
+      .modify(chainedArticles => {
         if (author) {
-          return Promise.all([fetchUserByUsername(author), result]).then(
-            ([userCheck, result]) => {
-              if (userCheck.length !== 0) {
-                return result;
-              }
-            }
-          );
+          chainedArticles.where("articles.author", "=", author);
         }
         if (topic) {
-          return Promise.all([fetchTopics(topic), result]).then(
-            ([topicCheck, result]) => {
-              if (topicCheck.length !== 0) {
-                return result;
-              }
-            }
-          );
+          chainedArticles.where("articles.topic", "=", topic);
         }
-      }
-      return result;
-    });
+      })
+      // .limit(limit)
+      // .offset(limit * (p - 1))
+      .then(result => {
+        if (result.length === 0) {
+          if (author) {
+            return Promise.all([fetchUserByUsername(author), result]).then(
+              ([userCheck, result]) => {
+                if (userCheck.length !== 0) {
+                  return result;
+                }
+              }
+            );
+          }
+          if (topic) {
+            return Promise.all([fetchTopics(topic), result]).then(
+              ([topicCheck, result]) => {
+                if (topicCheck.length !== 0) {
+                  return result;
+                }
+              }
+            );
+          }
+        }
+        return result;
+      })
+  );
 };

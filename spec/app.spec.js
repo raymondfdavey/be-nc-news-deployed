@@ -168,6 +168,78 @@ describe("/api", () => {
           });
         });
     });
+    // //////////PAGINATION/////////////
+    // describe.only("/api/articles?limit=&p=", () => {
+    //   it("GET: 200 - limits number of responses to 10 by default, with default sort order of created_at maintained", () => {
+    //     return request(app)
+    //       .get("/api/articles")
+    //       .expect(200)
+    //       .then(({ body }) => {
+    //         expect(body.articles).to.be.sortedBy("created_at", {
+    //           descending: true
+    //         });
+    //         expect(body.articles.length).to.eql(10);
+    //       });
+    //   });
+    //   it("GET: 200 - limits number of responses to specified limit, with default sort order of created_at maintained", () => {
+    //     return request(app)
+    //       .get("/api/articles?limit=5")
+    //       .expect(200)
+    //       .then(({ body }) => {
+    //         expect(body.articles).to.be.sortedBy("created_at", {
+    //           descending: true
+    //         });
+    //         expect(body.articles.length).to.eql(5);
+    //       });
+    //   });
+    //   it("GET: 200 - allows a page number querie which specifies the page to start", () => {
+    //     return request(app)
+    //       .get("/api/articles?limit=5&p=3")
+    //       .expect(200)
+    //       .then(({ body }) => {
+    //         expect(body.articles).to.be.sortedBy("created_at", {
+    //           descending: true
+    //         });
+    //         expect(body.articles.length).to.eql(2);
+    //       });
+    //   });
+    //   it("GET: 200 - allows a page number querie which specifies the page to start", () => {
+    //     return request(app)
+    //       .get("/api/articles?limit=3&p=4")
+    //       .expect(200)
+    //       .then(({ body }) => {
+    //         expect(body.articles).to.be.sortedBy("created_at", {
+    //           descending: true
+    //         });
+    //         expect(body.articles.length).to.eql(3);
+    //       });
+    //   });
+    //   /////////////////PAGINATION ERRORS///////////////////
+    //   it.only("GET: 400 - if limit is invalid, return results limited by default limit", () => {
+    //     return request(app)
+    //       .get("/api/articles?limit=ray")
+    //       .expect(200)
+    //       .then(({ body }) => {
+    //         expect(body.articles).to.be.sortedBy("created_at", {
+    //           descending: true
+    //         });
+    //         expect(body.articles.length).to.eql(10);
+    //       });
+    //   });
+    //   it.only("GET: 400 - if page is invalid, ignores that portion of request", () => {
+    //     return request(app)
+    //       .get("/api/articles?limit=5&p=ray")
+    //       .expect(200)
+    //       .then(({ body }) => {
+    //         expect(body.articles).to.be.sortedBy("created_at", {
+    //           descending: true
+    //         });
+    //         expect(body.articles.length).to.eql(5);
+    //       });
+    //   });
+    // });
+
+    /////////////////////////
     describe("/api/articles/?sort_by", () => {
       it("GET: 200 - sorts results by created_at and in descending order by default", () => {
         return request(app)
