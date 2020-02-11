@@ -50,7 +50,6 @@ exports.removeCommentByCommentId = (req, res, next) => {
 
 exports.getCommentByCommentId = (req, res, next) => {
   const { comment_id } = req.params;
-
   fetchCommentByCommentId(comment_id)
     .then(comment => {
       res.status(200).send({ comment });

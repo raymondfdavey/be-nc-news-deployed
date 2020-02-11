@@ -2,6 +2,12 @@ exports.send405Error = (req, res, next) => {
   res.status(405).send({ msg: "method not allowed" });
 };
 
+exports.handleCustomErrors = (err, req, res, next) => {
+  if (err.status !== undefined) {
+    res.status(err.status).send({ msg: err.msg });
+  } else next(err);
+};
+
 exports.handlePSQLErrors = (err, req, res, next) => {
   if (err.code === "22P02") {
     res.status(400).send({ msg: "BAD REQUEST" });
