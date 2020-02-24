@@ -7,8 +7,8 @@
     "seed:prod": "NODE_ENV=production DB_URL=$(heroku config:get DATABASE_URL) knex seed:run",
     "migrate-latest:prod": "NODE_ENV=production DB_URL=$(heroku config:get DATABASE_URL) knex migrate:latest",
     "migrate-rollback:prod": "NODE_ENV=production DB_URL=$(heroku config:get DATABASE_URL) knex migrate:rollback",
-    "seed-dev": "npm run setup-dbs && knex seed:run",
-    "seed-test": "npm run setup-dbs && NODE_ENV=test knex seed:run",
+    "seed-dev": "npm run setup && knex seed:run",
+    "seed-test": "npm run setup && NODE_ENV=test knex seed:run",
     "migrate-rollback": "knex migrate:rollback",
     "migrate-latest": "knex migrate:latest",
     "migrate-make": "knex migrate:make",
@@ -31,6 +31,7 @@
   },
   "homepage": "https://github.com/northcoders/be-nc-news#readme",
   "dependencies": {
+    "cors": "^2.8.5",
     "express": "^4.17.1",
     "knex": "^0.20.8",
     "pg": "^7.18.1"
