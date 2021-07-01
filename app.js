@@ -15,7 +15,10 @@ app.use(express.json());
 app.use("/api", apiRouter).all(send405Error);
 
 app.use("/", apiRouter).all(send405Error);
-
+app.get("/", (req, res, next) => {
+    console.log("getting to base of server");
+    res.status(200).send({ message: "Seems to be working" });
+  });
 app.use(handleCustomErrors);
 
 app.use(handlePSQLErrors);
