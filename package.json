@@ -1,6 +1,10 @@
 {
   "name": "be-nc-news",
   "version": "1.0.0",
+  "engines": {
+    "node": "14.x",
+    "npm": "7.x"
+  },
   "description": "bc-nc-news",
   "main": "index.js",
   "scripts": {
